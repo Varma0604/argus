@@ -17,6 +17,8 @@ class Scan(Base):
     status: Mapped[str] = mapped_column(String(20), default="queued", index=True)
     risk_score: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     dependencies: Mapped[list["DependencyRecord"]] = relationship(back_populates="scan", cascade="all, delete-orphan")
 
@@ -28,6 +30,8 @@ class DependencyRecord(Base):
     scan_id: Mapped[int] = mapped_column(ForeignKey("scans.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(250))
     version: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    ecosystem: Mapped[str] = mapped_column(String(30), default="PyPI")
+    manifest_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     scan: Mapped[Scan] = relationship(back_populates="dependencies")
     vulnerabilities: Mapped[list["Vulnerability"]] = relationship(back_populates="dependency", cascade="all, delete-orphan")
 

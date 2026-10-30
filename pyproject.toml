@@ -7,7 +7,7 @@ name = "argus-supply-chain-scanner"
 version = "0.1.0"
 description = "Scan public GitHub Python repositories for known OSV vulnerabilities."
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "sqlalchemy>=2.0", "psycopg[binary]>=3.2", "httpx>=0.27", "packaging>=24"]
+dependencies = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "sqlalchemy>=2.0", "psycopg[binary]>=3.2", "redis>=5", "httpx>=0.27", "packaging>=24"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-asyncio>=0.24", "httpx>=0.27"]
