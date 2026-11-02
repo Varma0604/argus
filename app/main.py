@@ -12,7 +12,7 @@ from app.database import ensure_schema, get_db
 from app.models import DependencyRecord, Scan, Vulnerability
 from app.osv import query_osv_batch
 from app.queue import enqueue_scan
-from app.scanner import Dependency, parse_manifest
+from app.scanner import Dependency, deduplicate_scan_dependencies, parse_manifest
 
 
 @asynccontextmanager
@@ -109,6 +109,7 @@ async def run_scan(scan_id: int, db: Session, worker_id: str | None = None):
                 if len(manifest.content) > 2_000_000:
                     raise ValueError(f"{path} exceeds the 2 MB manifest limit")
                 dependencies.extend(parse_manifest(path, manifest.text))
+            dependencies = deduplicate_scan_dependencies(dependencies)
             findings = await query_osv_batch(dependencies, client)
             for dep, vulnerabilities in zip(dependencies, findings):
                 record = DependencyRecord(scan_id=scan.id, name=dep.name, version=dep.version,
