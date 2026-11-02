@@ -29,6 +29,24 @@ def _deduplicate(dependencies: list[Dependency]) -> list[Dependency]:
     return result
 
 
+def deduplicate_scan_dependencies(dependencies: list[Dependency]) -> list[Dependency]:
+    """Keep one record when the same resolved package appears in multiple manifests.
+
+    A repository commonly contains both package.json and package-lock.json. They
+    can name the same resolved package/version, but Argus stores one dependency
+    record per scan/package/version. Keep the first discovery (lockfiles sort
+    before package.json) rather than inserting a duplicate database row.
+    """
+    seen: set[tuple[str, str | None]] = set()
+    result = []
+    for dependency in dependencies:
+        key = (dependency.name.lower(), dependency.version)
+        if key not in seen:
+            seen.add(key)
+            result.append(dependency)
+    return result
+
+
 def parse_requirements(text: str, manifest_path: str | None = None) -> list[Dependency]:
     dependencies: list[Dependency] = []
     for raw in text.splitlines():
