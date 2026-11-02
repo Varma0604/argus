@@ -24,7 +24,13 @@ The response includes a `scan_id`; poll `GET /api/v1/scans/{scan_id}` until the 
 - Only exact pins such as `urllib3==2.2.1` or `react@18.3.1` are looked up by version. Ranges and unpinned packages remain visible as unresolved dependencies.
 - OSV requests are sent in batches of at most 1,000 exact dependencies. The response score is severity-weighted and capped at 100: critical 25, high 15, medium 8, low 3, and unknown 5 points per finding. It is a triage signal, not a security rating.
 - Docker Compose uses Redis plus a separate worker. A worker records a lease while it scans; expired leases are returned to the queue. Local mode retains FastAPI's in-process task runner for learning without Redis.
-- No throughput or latency benchmark is claimed yet. Record results with a repeatable workload before adding performance figures to a résumé.
+- **Recorded benchmark (November 2, 2026):** three sequential end-to-end scans of
+  [`axios/axios`](https://github.com/axios/axios) on an Apple Silicon Mac with
+  Docker Desktop completed in 3.097--5.302 seconds (median **3.352 seconds**).
+  Each completed scan recorded 1,036 resolved dependencies and 35 OSV findings.
+  This is a single-repository, external-network measurement--not a general
+  throughput claim--and the repository, run count, and date should accompany
+  any résumé use of the figure.
 
 ## Design
 
