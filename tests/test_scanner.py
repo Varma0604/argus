@@ -1,4 +1,4 @@
-from app.scanner import parse_manifest, parse_requirements
+from app.scanner import Dependency, deduplicate_scan_dependencies, parse_manifest, parse_requirements
 
 
 def test_parses_pins_comments_extras_and_deduplicates():
@@ -16,3 +16,11 @@ def test_parses_pyproject_and_node_lock_manifests():
     assert [(d.name, d.version, d.ecosystem, d.manifest_path) for d in node] == [
         ("react", "18.3.1", "npm", "web/package-lock.json"),
     ]
+
+
+def test_deduplicates_a_resolved_package_across_manifests():
+    dependencies = [
+        Dependency("@babel/helper-string-parser", "7.29.7", "npm", "package-lock.json"),
+        Dependency("@babel/helper-string-parser", "7.29.7", "npm", "package.json"),
+    ]
+    assert deduplicate_scan_dependencies(dependencies) == [dependencies[0]]
