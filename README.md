@@ -46,6 +46,21 @@ pytest
 
 GitHub Actions runs the test suite on pushes and pull requests.
 
+## Deploy a live demo on Render
+
+`render.yaml` defines a public Docker web service and a managed PostgreSQL
+database. Render injects the database connection string at deployment time;
+Argus normalizes that URL for SQLAlchemy's `psycopg` driver. The hosted demo
+uses FastAPI's in-process fallback for background scans when no Redis URL is
+configured. The full Redis-worker architecture remains available through
+`docker compose` for local development and systems testing.
+
+To deploy, connect the GitHub repository in Render and create a new Blueprint
+from the repository root. Choose the free plans only if you accept their
+provider limits and expiration behavior. After deployment, verify
+`https://<your-service>.onrender.com/health` and link the public URL only once
+the endpoint responds successfully.
+
 ## Real-repository benchmark
 
 After Docker Desktop is running, start the API, PostgreSQL, Redis, and worker:
