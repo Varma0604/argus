@@ -2,6 +2,14 @@
 
 Argus scans dependency manifests in a public GitHub repository, parses Python and Node.js dependencies, and checks exact version pins against the [OSV vulnerability API](https://osv.dev/). It exposes scan submission and history through a FastAPI service and stores scan results in a configured SQL database. The Docker Compose deployment uses PostgreSQL and a Redis-backed scan worker; the local development default is SQLite with an in-process background task.
 
+## Live demo
+
+The public FastAPI documentation is available at
+[argus-api-rr4l.onrender.com/docs](https://argus-api-rr4l.onrender.com/docs).
+The deployment's health endpoint is
+[`/health`](https://argus-api-rr4l.onrender.com/health). This is a portfolio
+demo hosted on Render's free plan and may cold-start after inactivity.
+
 ## Run locally
 
 ```bash
