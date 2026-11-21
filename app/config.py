@@ -17,3 +17,6 @@ GITHUB_RAW_BASE = os.getenv("GITHUB_RAW_BASE", "https://raw.githubusercontent.co
 REDIS_URL = os.getenv("REDIS_URL")
 SCAN_QUEUE_KEY = "argus:scans"
 WORKER_LEASE_SECONDS = int(os.getenv("WORKER_LEASE_SECONDS", "120"))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+AI_TRIAGE_MODEL = os.getenv("AI_TRIAGE_MODEL", "gpt-4o-mini")
