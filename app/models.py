@@ -19,6 +19,9 @@ class Scan(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     lease_owner: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
     lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    ai_triage_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_triage_model: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    ai_triage_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     dependencies: Mapped[list["DependencyRecord"]] = relationship(back_populates="scan", cascade="all, delete-orphan")
 
