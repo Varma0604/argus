@@ -25,7 +25,13 @@ def ensure_schema():
     Base.metadata.create_all(bind=engine)
     additions = {
         "dependencies": {"ecosystem": "VARCHAR(30) DEFAULT 'PyPI'", "manifest_path": "VARCHAR(500)"},
-        "scans": {"lease_owner": "VARCHAR(120)", "lease_expires_at": "TIMESTAMP"},
+        "scans": {
+            "lease_owner": "VARCHAR(120)",
+            "lease_expires_at": "TIMESTAMP",
+            "ai_triage_json": "TEXT",
+            "ai_triage_model": "VARCHAR(120)",
+            "ai_triage_created_at": "TIMESTAMP",
+        },
     }
     with engine.begin() as connection:
         for table, columns in additions.items():
