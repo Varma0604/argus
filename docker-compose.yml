@@ -5,6 +5,10 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://argus:argus@db:5432/argus
       REDIS_URL: redis://redis:6379/0
+      # Optional: passed from an uncommitted shell environment for live AI-triage validation.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      AI_TRIAGE_MODEL: ${AI_TRIAGE_MODEL:-gpt-4o-mini}
     depends_on:
       db:
         condition: service_healthy
