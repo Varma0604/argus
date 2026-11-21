@@ -26,6 +26,20 @@ curl -X POST http://localhost:8000/api/v1/scans \
 
 The response includes a `scan_id`; poll `GET /api/v1/scans/{scan_id}` until the status is `complete` or `failed`. `GET /api/v1/scans` lists recent scan history. Health is at `GET /health`.
 
+## Optional AI remediation briefs
+
+After a completed scan with findings, `POST /api/v1/scans/{scan_id}/ai-triage`
+can create a short remediation brief when `OPENAI_API_KEY` is configured. The
+scanner and risk score remain deterministic; the model receives only persisted
+OSV evidence and returns structured actions linked to an OSV ID, package, and
+installed version from that scan. Argus rejects output that cites evidence not
+present in the scan, never changes dependencies automatically, and labels every
+brief as guidance to verify before applying changes.
+
+Set `OPENAI_API_KEY` and optionally `AI_TRIAGE_MODEL` in an uncommitted `.env`
+file or deployment secret. Do not commit an API key. Without a key, the
+endpoint returns `503` and the rest of Argus works normally.
+
 ## Current behavior and limits
 
 - Argus discovers `requirements.txt`, `pyproject.toml`, `package.json`, `package-lock.json`, and `npm-shrinkwrap.json` anywhere in a repository's default branch. Private repositories and unsupported manifest formats are not supported.
