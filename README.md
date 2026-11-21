@@ -10,6 +10,13 @@ The deployment's health endpoint is
 [`/health`](https://argus-api-rr4l.onrender.com/health). This is a portfolio
 demo hosted on Render's free plan and may cold-start after inactivity.
 
+## Run a small user pilot
+
+The consent-based [user-pilot guide](docs/user-pilot.md) provides a five-minute
+session script, four feedback questions, and an anonymous aggregate-results
+template. It is designed to turn real usability feedback into a documented
+product improvement without collecting private repository data.
+
 ## Run locally
 
 ```bash
@@ -46,13 +53,14 @@ endpoint returns `503` and the rest of Argus works normally.
 - Only exact pins such as `urllib3==2.2.1` or `react@18.3.1` are looked up by version. Ranges and unpinned packages remain visible as unresolved dependencies.
 - OSV requests are sent in batches of at most 1,000 exact dependencies. The response score is severity-weighted and capped at 100: critical 25, high 15, medium 8, low 3, and unknown 5 points per finding. It is a triage signal, not a security rating.
 - Docker Compose uses Redis plus a separate worker. A worker records a lease while it scans; expired leases are returned to the queue. Local mode retains FastAPI's in-process task runner for learning without Redis.
-- **Recorded benchmark (November 2, 2026):** three sequential end-to-end scans of
+- **Recorded benchmark (November 21, 2026):** three sequential end-to-end scans of
   [`axios/axios`](https://github.com/axios/axios) on an Apple Silicon Mac with
-  Docker Desktop completed in 3.097--5.302 seconds (median **3.352 seconds**).
-  Each completed scan recorded 1,036 resolved dependencies and 35 OSV findings.
-  This is a single-repository, external-network measurement--not a general
-  throughput claim--and the repository, run count, and date should accompany
-  any résumé use of the figure.
+  Docker Desktop completed in 3.425--6.750 seconds (median **3.696 seconds**).
+  Each completed scan resolved 1,068 dependencies and surfaced 32 OSV findings;
+  the severity-weighted score reached the configured 100-point cap. This is a
+  single-repository, external-network measurement--not a general throughput
+  claim--and the repository, run count, and date should accompany any résumé use
+  of the figure.
 
 ## Design
 
