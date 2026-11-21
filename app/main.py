@@ -1,6 +1,8 @@
 import asyncio
+import json
 import re
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 import httpx
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
@@ -13,6 +15,7 @@ from app.models import DependencyRecord, Scan, Vulnerability
 from app.osv import query_osv_batch
 from app.queue import enqueue_scan
 from app.scanner import Dependency, deduplicate_scan_dependencies, parse_manifest
+from app.triage import TriageUnavailableError, TriageValidationError, create_triage_brief, scan_evidence
 
 
 @asynccontextmanager
@@ -67,6 +70,15 @@ def _severity_label(vulnerability: dict) -> str:
 
 def _risk_points(severity: str) -> int:
     return {"CRITICAL": 25, "HIGH": 15, "MEDIUM": 8, "LOW": 3, "UNKNOWN": 5}[severity]
+
+
+def _saved_triage(scan: Scan):
+    if not scan.ai_triage_json:
+        return None
+    try:
+        return json.loads(scan.ai_triage_json)
+    except json.JSONDecodeError:
+        return None
 
 
 async def run_scan(scan_id: int, db: Session, worker_id: str | None = None):
@@ -172,10 +184,37 @@ def get_scan(scan_id: int, db: Session = Depends(get_db)):
         "scan_id": scan.id, "repository_url": scan.repository_url, "status": scan.status,
         "risk_score": scan.risk_score, "error": scan.error, "lease_owner": scan.lease_owner,
         "lease_expires_at": scan.lease_expires_at,
+        "ai_triage": _saved_triage(scan), "ai_triage_model": scan.ai_triage_model,
         "dependencies": [{"name": d.name, "version": d.version, "ecosystem": d.ecosystem, "manifest_path": d.manifest_path,
             "vulnerabilities": [{"id": v.osv_id, "summary": v.summary, "severity": v.severity} for v in d.vulnerabilities]}
             for d in scan.dependencies],
     }
+
+
+@app.post("/api/v1/scans/{scan_id}/ai-triage")
+async def generate_ai_triage(scan_id: int, db: Session = Depends(get_db)):
+    """Generate an optional, evidence-linked remediation brief for a completed scan."""
+    scan = db.get(Scan, scan_id)
+    if scan is None:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    if scan.status != "complete":
+        raise HTTPException(status_code=409, detail="Scan must complete before AI triage")
+    evidence = scan_evidence(scan.dependencies)
+    if not evidence:
+        raise HTTPException(status_code=409, detail="Scan has no vulnerability findings to triage")
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            triage = await create_triage_brief(evidence, client)
+    except TriageUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except (httpx.HTTPError, TriageValidationError) as exc:
+        raise HTTPException(status_code=502, detail=f"AI triage failed: {exc}") from exc
+
+    scan.ai_triage_json = json.dumps(triage)
+    scan.ai_triage_model = "configured OpenAI-compatible model"
+    scan.ai_triage_created_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"scan_id": scan.id, "ai_triage": triage, "warning": "AI-generated guidance; verify before applying changes."}
 
 
 @app.get("/api/v1/scans")
